@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Read(//h/code_llm/aigc/codeMDGen/**)",
+      "Bash(npm install:*)",
+      "Bash(node -e \"const p=require.resolve\\(''tree-sitter-java/package.json''\\); console.log\\(p\\); const fs=require\\(''fs''\\); const dir=require\\(''path''\\).dirname\\(p\\); console.log\\(fs.readdirSync\\(dir\\).join\\('',''\\)\\); const dist=dir+''/dist''; console.log\\(''dist:'', fs.existsSync\\(dist\\)?fs.readdirSync\\(dist\\).join\\('',''\\):''none''\\);\")",
+      "Bash(npx ts-node:*)",
+      "Bash(node -e \"const w=require\\(''web-tree-sitter''\\); console.log\\(Object.keys\\(w\\)\\); console.log\\(''Parser:'',typeof w.Parser\\); console.log\\(''Language:'',typeof w.Language\\); if\\(w.Language\\){console.log\\(''Language static:'',Object.getOwnPropertyNames\\(w.Language\\).filter\\(k=>typeof w.Language[k]===''function''\\)\\);} if\\(w.Parser\\){const p=w.Parser; console.log\\(''Parser static:'',Object.getOwnPropertyNames\\(p\\).filter\\(k=>typeof p[k]===''function''\\)\\);}\")",
+      "Bash(node -e \"const r=require\\(''./dist/result.json''\\); console.log\\(''=== 类 ===''\\); r.classes.forEach\\(c=>console.log\\(c.kind,c.fqn,''fields:'',c.fields.length,''methods:'',c.methods.length,''super:'',c.superClass,''ifaces:'',c.interfaces\\)\\); console.log\\(''=== 关系 ===''\\); r.relations.forEach\\(x=>console.log\\(x.type, x.source.class+''.''+\\(x.source.member||''''\\), ''->'', x.target.class+''.''+\\(x.target.member||''''\\)\\)\\); console.log\\(''=== 未决 ==='', r.unresolvedSymbols\\);\")",
+      "Bash(node -e \"const fs=require\\(''fs''\\);const h=fs.readFileSync\\(''dist/result.html'',''utf8''\\);console.log\\(''长度:'',h.length\\);console.log\\(''含数据脚本:'',h.includes\\(''id=\"\"data\"\"''\\)\\);console.log\\(''含类名Foo:'',h.includes\\(''Foo''\\)\\);console.log\\(''含关系inherit:'',h.includes\\(''inherit''\\)\\);console.log\\(''含力导向:'',h.includes\\(''requestAnimationFrame''\\)\\);console.log\\(''前300字符:''\\);console.log\\(h.slice\\(0,300\\)\\);\")"
+    ]
+  }
+}

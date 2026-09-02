@@ -1,0 +1,67 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "解析Java代码关系",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "program": "${workspaceFolder}/src/index.ts",
+      "args": [
+        // "--input", "${workspaceFolder}mresources/sample",
+        "--input", "H://code//sofa-boot//sofa-boot-project//sofa-boot",
+        "--output", "${workspaceFolder}/dist/result.json"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "openOnSessionStart",
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/node_modules/**"
+      ],
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceFolder}/tsconfig.json",
+        "TS_NODE_TRANSPILE_ONLY": "false",
+        "TS_NODE_PREFER_TS_EXTS": "true"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "解析Java(单文件)",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "program": "${workspaceFolder}/src/index.ts",
+      "args": [
+        "--input", "${input:javaFile}",
+        "--output", "${workspaceFolder}/dist/result.json"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/node_modules/**"
+      ],
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceFolder}/tsconfig.json",
+        "TS_NODE_PREFER_TS_EXTS": "true"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "类型检查",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["tsc", "--noEmit"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "javaFile",
+      "type": "promptString",
+      "description": "输入要解析的 Java 文件或目录绝对路径",
+      "default": "${workspaceFolder}/resources/sample"
+    }
+  ]
+}

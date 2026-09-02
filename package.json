@@ -1,0 +1,20 @@
+{
+  "name": "codeparseforres",
+  "version": "1.0.0",
+  "description": "基于 tree-sitter-java.wasm 的 Java 代码关系解析",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node src/index.ts",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "tree-sitter-java": "^0.23.5",
+    "web-tree-sitter": "^0.25.8"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.0"
+  }
+}
