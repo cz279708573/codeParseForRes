@@ -85,6 +85,24 @@ export class SymbolResolver {
   }
 
   /**
+   * 尽力解析短名为 FQN，不要求目标类在源码中存在。
+   * 用于外部类调用的 best-effort 推测，配合 external 节点保持链路不断。
+   * 规则：精确 import → 非java.lang通配包构造 → null
+   * 注意：跳过 java.lang，避免将任意短名误推测为 java.lang.X
+   */
+  resolveBestEffort(short: string): string | null {
+    if (!short) return null;
+    if (short.includes('.')) return short;           // 已是 FQN
+    const exact = this.exactImports.get(short);       // 精确 import
+    if (exact) return exact;
+    for (const pkg of this.wildcardPackages) {         // 通配包：直接构造，不查 fqnSet
+      if (pkg === 'java.lang') continue;              // 跳过隐式 java.lang
+      return `${pkg}.${short}`;                        // 取首个用户通配包
+    }
+    return null;
+  }
+
+  /**
    * 记录未决符号（带位置，供调用方聚合）。
    * @param list    未决符号收集列表
    * @param symbol  短名或原始文本

@@ -14,6 +14,7 @@ import { analyzeFieldAccess } from './analyzer/field-access-analyzer';
 import { renderHtmlReport, buildHtmlReportPath } from './view/html-reporter';
 import { toGraph } from './view/graph-builder';
 import { renderGraphHtml } from './view/graph-html-reporter';
+import { renderTraceHtml } from './view/trace-html-reporter';
 
 interface ParsedFile {
   fileResult: FileParseResult;
@@ -164,6 +165,9 @@ export async function parseProject(input: string, output?: string): Promise<Pars
     await fs.writeFile(graphPath, JSON.stringify(graph, null, 2), 'utf8');
     const graphHtmlPath = path.join(outDir, baseName + '.graph.html');
     await fs.writeFile(graphHtmlPath, renderGraphHtml(graph), 'utf8');
+    // 生成方法链路追踪 trace.html
+    const traceHtmlPath = path.join(outDir, baseName + '.trace.html');
+    await fs.writeFile(traceHtmlPath, renderTraceHtml(graph), 'utf8');
   }
   return result;
 }
@@ -195,6 +199,7 @@ async function main() {
   console.log(`HTML 已写入：${buildHtmlReportPath(out)}`);
   console.log(`Graph JSON 已写入：${path.join(path.dirname(path.resolve(out)), path.basename(out, path.extname(out)) + '.graph.json')}`);
   console.log(`Graph HTML 已写入：${path.join(path.dirname(path.resolve(out)), path.basename(out, path.extname(out)) + '.graph.html')}`);
+  console.log(`Trace HTML 已写入：${path.join(path.dirname(path.resolve(out)), path.basename(out, path.extname(out)) + '.trace.html')}`);
 }
 
 if (require.main === module) {

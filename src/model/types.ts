@@ -204,7 +204,7 @@ export interface ParseResult {
 // ==================== 纯图对象模型 ====================
 
 /** 图节点种类 */
-export type GraphNodeType = 'class' | 'method' | 'field' | 'annotation';
+export type GraphNodeType = 'class' | 'method' | 'field' | 'annotation' | 'external';
 
 /** 图节点 */
 export interface GraphNode {

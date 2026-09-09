@@ -26,8 +26,9 @@ export function renderGraphHtml(graph: Graph): string {
     method: '#16a085',
     field: '#f39c12',
     annotation: '#c0392b',
+    external: '#95a5a6',
   };
-  const nodeRadius: Record<string, number> = { class: 20, method: 14, field: 8, annotation: 10 };
+  const nodeRadius: Record<string, number> = { class: 20, method: 14, field: 8, annotation: 10, external: 12 };
   const edgeColors: Record<string, string> = {
     contains: '#95a5a6',
     inherit: '#e74c3c',
@@ -136,7 +137,7 @@ export function renderGraphHtml(graph: Graph): string {
   var edgeColors = ${JSON.stringify(edgeColors)};
   var edgeDash = ${JSON.stringify(edgeDash)};
   var eTypeLabel = {contains:'包含',inherit:'继承',implement:'实现',override:'重写','implement-method':'实现方法',call:'调用','field-access':'访问',instantiate:'实例化','type-ref':'类型引用',annotate:'注解'};
-  var nTypeLabel = {class:'类',method:'方法',field:'字段',annotation:'注解'};
+  var nTypeLabel = {class:'类',method:'方法',field:'字段',annotation:'注解',external:'外部'};
 
   document.getElementById('stats').textContent = '节点 ' + graph.nodes.length + ' · 边 ' + graph.edges.length;
 
@@ -150,9 +151,9 @@ export function renderGraphHtml(graph: Graph): string {
   });
 
   // 节点类型过滤
-  var activeNodeTypes = {class:true, method:true, field:true, annotation:true};
+  var activeNodeTypes = {class:true, method:true, field:true, annotation:true, external:true};
   var ntypesEl = document.getElementById('ntypes');
-  ['class','method','field','annotation'].forEach(function(t){
+  ['class','method','field','annotation','external'].forEach(function(t){
     var el = document.createElement('label');
     el.className = 'ntype';
     el.innerHTML = '<input type="checkbox" checked data-nt="'+t+'"><span style="color:'+nodeColors[t]+'">●</span>'+nTypeLabel[t];
@@ -229,6 +230,7 @@ export function renderGraphHtml(graph: Graph): string {
     html += '<div class="meta-line">ID: <code>' + escapeHtml(n.id) + '</code></div>';
     html += '<div class="meta-line">类型: <code>' + nTypeLabel[n.type] + '</code></div>';
     if (n.classFqn && n.classFqn !== n.id) html += '<div class="meta-line">所属类: <code>' + escapeHtml(n.classFqn) + '</code></div>';
+    if (n.type === 'external') html += '<div class="meta-line">来源: <code>外部依赖（非源码）</code></div>';
     if (n.kind) html += '<div class="meta-line">类种: <code>' + n.kind + '</code></div>';
     if (n.dataType) html += '<div class="meta-line">数据类型: <code>' + escapeHtml(n.dataType) + '</code></div>';
     if (n.isConstructor) html += '<div class="meta-line">构造器: 是</div>';

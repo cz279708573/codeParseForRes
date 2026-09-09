@@ -136,6 +136,59 @@ export function toGraph(result: ParseResult): Graph {
     });
   }
 
+  // ---- 补建 external 节点：边指向的类不在源码中 ----
+  // 遍历所有边，凡 target（或 source）指向不存在的节点 ID，补建 external 节点。
+  // 对于方法级 ID（fqn#name），同时补建所属 external 类节点与 contains 边。
+  const existingNodeIds = new Set(nodes.map((n) => n.id));
+  const externalSeen = new Set<string>();
+  const externalNodes: GraphNode[] = [];
+  const externalEdges: GraphEdge[] = [];
+
+  /** 为不存在的节点 ID 补建 external 节点（方法级自动补类 + contains） */
+  function ensureExternalNode(id: string) {
+    if (existingNodeIds.has(id) || externalSeen.has(id)) return;
+    externalSeen.add(id);
+    if (id.includes('#')) {
+      // 方法级：fqn#methodName → 补类节点 + 方法节点 + contains 边
+      const hashIdx = id.indexOf('#');
+      const fqn = id.slice(0, hashIdx);
+      const method = id.slice(hashIdx + 1);
+      if (!existingNodeIds.has(fqn) && !externalSeen.has(fqn)) {
+        externalSeen.add(fqn);
+        externalNodes.push({
+          id: fqn,
+          type: 'external',
+          label: fqn.split('.').pop() || fqn,
+          classFqn: fqn,
+        });
+      }
+      externalNodes.push({
+        id,
+        type: 'external',
+        label: method,
+        classFqn: fqn,
+      });
+      if (!existingNodeIds.has(fqn)) {
+        externalEdges.push({ type: 'contains', source: fqn, target: id });
+      }
+    } else if (id.includes('.')) {
+      // 类级：直接补 external 类节点
+      externalNodes.push({
+        id,
+        type: 'external',
+        label: id.split('.').pop() || id,
+        classFqn: id,
+      });
+    }
+  }
+
+  for (const e of edges) {
+    ensureExternalNode(e.target);
+    ensureExternalNode(e.source);
+  }
+  nodes.push(...externalNodes);
+  edges.push(...externalEdges);
+
   // ---- override：子类方法沿继承链匹配父类同名同参方法 ----
   for (const c of result.classes) {
     if (c.kind !== 'class' && c.kind !== 'record') continue;

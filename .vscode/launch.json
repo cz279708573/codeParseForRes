@@ -9,7 +9,8 @@
       "program": "${workspaceFolder}/src/index.ts",
       "args": [
         // "--input", "${workspaceFolder}mresources/sample",
-        "--input", "H://code//sofa-boot//sofa-boot-project//sofa-boot",
+        // "--input", "H://code_java//qijin_sample",
+        "--input", "H://code//sofa-boot",
         "--output", "${workspaceFolder}/dist/result.json"
       ],
       "cwd": "${workspaceFolder}",
