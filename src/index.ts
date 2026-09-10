@@ -15,6 +15,7 @@ import { renderHtmlReport, buildHtmlReportPath } from './view/html-reporter';
 import { toGraph } from './view/graph-builder';
 import { renderGraphHtml } from './view/graph-html-reporter';
 import { renderTraceHtml } from './view/trace-html-reporter';
+import { renderIndexHtml, type IndexPageLink } from './view/index-html-reporter';
 
 interface ParsedFile {
   fileResult: FileParseResult;
@@ -168,6 +169,48 @@ export async function parseProject(input: string, output?: string): Promise<Pars
     // 生成方法链路追踪 trace.html
     const traceHtmlPath = path.join(outDir, baseName + '.trace.html');
     await fs.writeFile(traceHtmlPath, renderTraceHtml(graph), 'utf8');
+    // 生成首页入口 index.html
+    const indexPages: IndexPageLink[] = [
+      {
+        key: 'report',
+        title: '概览报告',
+        description: '类列表、类详情与关系图谱的总览视图。',
+        href: path.basename(htmlPath),
+        accent: '#4a90e2',
+        iconPath: 'M3 5h18v4H3zM3 11h18v4H3zM3 17h18v4H3z',
+      },
+      {
+        key: 'graph',
+        title: '代码图对象',
+        description: '基于纯图对象的全量节点与边可视化，支持按关系类型过滤。',
+        href: path.basename(graphHtmlPath),
+        accent: '#16a085',
+        iconPath: 'M12 2a10 10 0 100 20 10 10 0 000-20zM4.93 4.93a8 8 0 0114.14 0l-1.42 1.42a6 6 0 00-11.3 0zM7 12a5 5 0 1110 0 5 5 0 01-10 0z',
+      },
+      {
+        key: 'trace',
+        title: '方法链路追踪',
+        description: '以方法为根按思维导图展开其调用、重写与实现关系。',
+        href: path.basename(traceHtmlPath),
+        accent: '#e74c3c',
+        iconPath: 'M3 12h4l3-8 4 16 3-8h4',
+      },
+    ];
+    const indexHtmlPath = path.join(outDir, baseName + '.index.html');
+    await fs.writeFile(
+      indexHtmlPath,
+      renderIndexHtml(indexPages, {
+        title: `${baseName} · 代码可视化总览`,
+        stats: [
+          { label: '类', value: result.classes.length },
+          { label: '关系', value: result.relations.length },
+          { label: '未决符号', value: result.unresolvedSymbols.length },
+          { label: '图节点', value: graph.nodes.length },
+          { label: '图边', value: graph.edges.length },
+        ],
+      }),
+      'utf8',
+    );
   }
   return result;
 }
@@ -200,6 +243,7 @@ async function main() {
   console.log(`Graph JSON 已写入：${path.join(path.dirname(path.resolve(out)), path.basename(out, path.extname(out)) + '.graph.json')}`);
   console.log(`Graph HTML 已写入：${path.join(path.dirname(path.resolve(out)), path.basename(out, path.extname(out)) + '.graph.html')}`);
   console.log(`Trace HTML 已写入：${path.join(path.dirname(path.resolve(out)), path.basename(out, path.extname(out)) + '.trace.html')}`);
+  console.log(`Index HTML 已写入：${path.join(path.dirname(path.resolve(out)), path.basename(out, path.extname(out)) + '.index.html')}`);
 }
 
 if (require.main === module) {
