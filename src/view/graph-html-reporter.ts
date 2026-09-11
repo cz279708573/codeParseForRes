@@ -18,9 +18,34 @@ import type { Graph, GraphNode, GraphEdge } from '../model/types';
  *   - instantiate      紫（方法 new 创建类）
  *   - type-ref         灰实线（类型引用）
  */
-export function renderGraphHtml(graph: Graph): string {
-  const jsonText = JSON.stringify(graph).replace(/<\/script>/g, '<\\/script>');
+/** 模板中内嵌 JSON 的占位符，落盘时替换为真实数据 */
+const GRAPH_JSON_PLACEHOLDER = '\u0000GRAPH_JSON_DATA\u0000';
 
+export interface GraphHtmlOptions {
+  /** 返回首页的链接（通常为 <baseName>.index.html）；传空字符串则不渲染返回入口 */
+  indexHref?: string;
+}
+
+export function renderGraphHtml(graph: Graph, opts: GraphHtmlOptions = {}): string {
+  const { head, tail } = graphHtmlParts(opts);
+  return head + JSON.stringify(graph).replace(/</g, '\\u003c') + tail;
+}
+
+/**
+ * 拆成 head / JSON / tail 三段。
+ * 超大图一次 stringify 会超出 V8 字符串长度上限，
+ * 此时调用方应改用流式写出（见 utils/stream-writer 的 writeHtmlWithJson）。
+ */
+export function graphHtmlParts(opts: GraphHtmlOptions = {}): { head: string; tail: string } {
+  const tpl = buildGraphHtmlTemplate(GRAPH_JSON_PLACEHOLDER, opts.indexHref ?? 'index.html');
+  const idx = tpl.indexOf(GRAPH_JSON_PLACEHOLDER);
+  return { head: tpl.slice(0, idx), tail: tpl.slice(idx + GRAPH_JSON_PLACEHOLDER.length) };
+}
+
+function buildGraphHtmlTemplate(jsonText: string, indexHref: string): string {
+  const homeLink = indexHref
+    ? `\n  <a class="home-link" href="${escapeAttr(indexHref)}" title="返回总览首页">← 返回首页</a>`
+    : '';
   const nodeColors: Record<string, string> = {
     class: '#4a90e2',
     method: '#16a085',
@@ -57,6 +82,8 @@ export function renderGraphHtml(graph: Graph): string {
   body { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; background: #f5f6fa; color: #2c3e50; height: 100vh; display: flex; flex-direction: column; }
   header { background: #2c3e50; color: #ecf0f1; padding: 10px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
   header h1 { font-size: 16px; font-weight: 500; }
+  header .home-link { font-size: 12px; color: #ecf0f1; text-decoration: none; padding: 3px 10px; border-radius: 3px; background: rgba(255,255,255,0.12); white-space: nowrap; }
+  header .home-link:hover { background: rgba(255,255,255,0.26); }
   header .stats { font-size: 13px; opacity: 0.85; }
   header .filters { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
   header .filter { display: flex; align-items: center; gap: 4px; cursor: pointer; user-select: none; font-size: 11px; padding: 3px 7px; border-radius: 3px; background: rgba(255,255,255,0.1); }
@@ -105,7 +132,7 @@ export function renderGraphHtml(graph: Graph): string {
 </head>
 <body>
 <header>
-  <h1>Java 代码图对象</h1>
+  <h1>Java 代码图对象</h1>${homeLink}
   <div class="stats" id="stats"></div>
   <div class="ntypes" id="ntypes"></div>
   <div class="filters" id="filters"></div>
@@ -493,4 +520,9 @@ export function renderGraphHtml(graph: Graph): string {
 </script>
 </body>
 </html>`;
+}
+
+/** 编译期 HTML 属性转义（与运行时脚本内的 escapeHtml 互不影响） */
+function escapeAttr(s: string): string {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }

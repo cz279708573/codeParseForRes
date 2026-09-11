@@ -1,0 +1,5 @@
+{
+  "_说明": "需要单独出分页页面的注解名，支持简单名(Override)或全限定名(org.springframework.stereotype.Service)；pageSize 为详情页每页条数。也可用命令行 --annotations / --page-size 覆盖。",
+  "annotations": ["Service", "CloudComponent", "Component","CloudFunction","CloudService","Function"],
+  "pageSize": 20
+}

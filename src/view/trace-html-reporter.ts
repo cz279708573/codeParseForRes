@@ -19,9 +19,32 @@ import type { Graph, GraphNode, GraphEdge } from '../model/types';
  *
  * 自包含 HTML，无外部依赖。
  */
-export function renderTraceHtml(graph: Graph): string {
-  const jsonText = JSON.stringify(graph).replace(/<\/script>/g, '<\\/script>');
+/** 模板中内嵌 JSON 的占位符，落盘时替换为真实数据 */
+const GRAPH_JSON_PLACEHOLDER = '\u0000GRAPH_JSON_DATA\u0000';
 
+export interface TraceHtmlOptions {
+  /** 返回首页的链接（通常为 <baseName>.index.html）；传空字符串则不渲染返回入口 */
+  indexHref?: string;
+}
+
+export function renderTraceHtml(graph: Graph, opts: TraceHtmlOptions = {}): string {
+  const { head, tail } = traceHtmlParts(opts);
+  return head + JSON.stringify(graph).replace(/</g, '\\u003c') + tail;
+}
+
+/**
+ * 拆成 head / JSON / tail 三段，供超大数据流式落盘。
+ */
+export function traceHtmlParts(opts: TraceHtmlOptions = {}): { head: string; tail: string } {
+  const tpl = buildTraceHtmlTemplate(GRAPH_JSON_PLACEHOLDER, opts.indexHref ?? 'index.html');
+  const idx = tpl.indexOf(GRAPH_JSON_PLACEHOLDER);
+  return { head: tpl.slice(0, idx), tail: tpl.slice(idx + GRAPH_JSON_PLACEHOLDER.length) };
+}
+
+function buildTraceHtmlTemplate(jsonText: string, indexHref: string): string {
+  const homeLink = indexHref
+    ? `\n  <a class="home-link" href="${escapeAttr(indexHref)}" title="返回总览首页">← 返回首页</a>`
+    : '';
   const methodColor = '#16a085';
   const fieldColor = '#f39c12';
   const callColor = '#27ae60';
@@ -39,6 +62,8 @@ export function renderTraceHtml(graph: Graph): string {
   body { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; background: #f5f6fa; color: #2c3e50; height: 100vh; display: flex; flex-direction: column; }
   header { background: #2c3e50; color: #ecf0f1; padding: 10px 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
   header h1 { font-size: 16px; font-weight: 500; }
+  header .home-link { font-size: 12px; color: #ecf0f1; text-decoration: none; padding: 3px 10px; border-radius: 3px; background: rgba(255,255,255,0.12); white-space: nowrap; }
+  header .home-link:hover { background: rgba(255,255,255,0.26); }
   header .stats { font-size: 13px; opacity: 0.85; }
   header .search-wrap { margin-left: auto; position: relative; width: 420px; max-width: 50vw; }
   header .search-wrap input { width: 100%; padding: 8px 12px; font-size: 13px; border: 1px solid #d0d3db; border-radius: 4px; }
@@ -75,7 +100,7 @@ export function renderTraceHtml(graph: Graph): string {
 </head>
 <body>
 <header>
-  <h1>方法链路追踪</h1>
+  <h1>方法链路追踪</h1>${homeLink}
   <div class="stats" id="stats"></div>
   <div class="search-wrap">
     <input id="search" placeholder="搜索方法名（仅方法节点）…" autocomplete="off" />
@@ -570,4 +595,9 @@ export function renderTraceHtml(graph: Graph): string {
 </script>
 </body>
 </html>`;
+}
+
+/** 编译期 HTML 属性转义（与运行时脚本内的 escapeHtml 互不影响） */
+function escapeAttr(s: string): string {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
